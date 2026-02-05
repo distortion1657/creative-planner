@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+from datetime import timedelta
 # Create your models here.
 
 class CustomUser(AbstractUser):
@@ -19,7 +20,9 @@ class ProductiveObject(models.Model):
     productivity_value = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(100.0)]
     )
+    duration = models.DurationField(default=timedelta())
     creation = models.DateTimeField(auto_now_add=True)
+
 
 class Task(models.Model):
     name = models.CharField(max_length=255)
