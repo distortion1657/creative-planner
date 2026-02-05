@@ -6,6 +6,7 @@ from datetime import timedelta
 # Create your models here.
 
 class CustomUser(AbstractUser):
+    username = models.CharField(max_length=25, unique=True, blank=False, null=False)
     email = models.EmailField(unique=True, blank=False, null=False)
     creation = models.DateTimeField(auto_now_add=True)
     premium = models.BooleanField(default=False)
@@ -22,7 +23,6 @@ class ProductiveObject(models.Model):
     )
     duration = models.DurationField(default=timedelta())
     creation = models.DateTimeField(auto_now_add=True)
-
 
 class Task(models.Model):
     name = models.CharField(max_length=255)
