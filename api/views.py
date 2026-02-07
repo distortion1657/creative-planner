@@ -17,10 +17,11 @@ def get_tasks(request):
 @api_view(["GET"])
 def get_user(request, username):
     try:
-        usrname=CustomUser.objects.get(username=username)
-        user = {
-            'username': usrname.username,
-            'email': usrname.email
+        user=CustomUser.objects.get(username=username)
+        data = {
+            'username': user.username,
+            'email': user.email,
+            'productivity': user.productivity,
         }
         return Response(user)
     except CustomUser.DoesNotExist:
@@ -39,25 +40,39 @@ def create_user(request):
     except IntegrityError:
         return Response("User already exists? Email already exists?")
     return Response(f"User {user.username} created successfully ")
-    
+
+# Returns the amount of productivity gained from one task.
 @api_view(["POST"])
 def productivity_gain(request):
+    # Get user and calculate productivity gain
     try:
         user = CustomUser.objects.get(username=request.data.get("username"))
-        user_freetime = user.freetime.total_seconds()
-        task = ProductiveObject.objects.get(user=user)
-        task_duration = task.duration.total_seconds()
-        productivity_gained = (task_duration/user_freetime)
-        user.productivity = productivity_gained
     except CustomUser.DoesNotExist:
         raise Http404("User does not exist :(")
+    
+    user_freetime = user.freetime.total_seconds()
+    task = ProductiveObject.objects.get(user=user)
+    task_duration = task.duration.total_seconds()
+    productivity_gained = (task_duration/user_freetime)
+    user.productivity += productivity_gained
+
+    
     return Response(f"${user.username} gained ${productivity_gained}.")
 
 # For now, we are fetching using the id, but maybe we would need to fetch using the name?
 @api_view(["GET"])
 def get_productive_object(request, id):
     try:
-        productive_object = ProductiveObject.objects.get(id=id)
+        productive_object = ProductiveObject.objects.get(public_id=id)
+        data = {
+            'name': productive_object.name,
+            'productivity_value': productive_object.productivity_value,
+            'duration': productive_object.duration,
+            'owner': productive_object.user.username
+
+        }
+        return Response(data)
+
     except ProductiveObject.DoesNotExist:
         raise Http404("Object does not exist :(")
 
@@ -72,9 +87,10 @@ def create_productive_object(request):
     )
     return Response(f"${productive_object} was successfully created.")
 
+
 # To Do
-# Write api endpoints for ProductiveObject (GET and POST)
-# Write a getter for CustomUser
+
+
 
 # curl -X POST http://localhost:8000/productivity/gain \
 #   -H "Content-Type: application/json" \
